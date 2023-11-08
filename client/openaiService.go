@@ -7,20 +7,20 @@ import (
 	"github.com/gui0923/openai-embedding-client/constant"
 )
 
-type EmbeddingProcessService interface {
+type embeddingProcessService interface {
 	GenerateRequest(request *bean.EmbeddingRequest) (string, map[string]string, map[string]interface{})
 
 	ConvertEmbeddingResult(responseBody string) bean.EmbeddingResult
 }
 
-type OpenAIEmbeddingProcessService struct {
+type openAIEmbeddingProcessService struct {
 }
 
-type AzureOpenAIEmbeddingProcessService struct {
-	OpenAIEmbeddingProcessService
+type azureOpenAIEmbeddingProcessService struct {
+	openAIEmbeddingProcessService
 }
 
-func (service *OpenAIEmbeddingProcessService) GenerateRequest(request *bean.EmbeddingRequest) (string, map[string]string, map[string]interface{}) {
+func (service *openAIEmbeddingProcessService) GenerateRequest(request *bean.EmbeddingRequest) (string, map[string]string, map[string]interface{}) {
 	header := make(map[string]string, 0)
 	header[constant.AUTHORIZATION_KEY] = constant.BEARER_PREFIX + request.ApiKey
 	header[constant.CONTENT_TYPE] = constant.JSON_TYPE
@@ -35,7 +35,7 @@ func (service *OpenAIEmbeddingProcessService) GenerateRequest(request *bean.Embe
 	return request.Endpoint, header, requestBody
 }
 
-func (service *AzureOpenAIEmbeddingProcessService) GenerateRequest(request *bean.EmbeddingRequest) (string, map[string]string, map[string]interface{}) {
+func (service *azureOpenAIEmbeddingProcessService) GenerateRequest(request *bean.EmbeddingRequest) (string, map[string]string, map[string]interface{}) {
 	header := make(map[string]string, 0)
 	header[constant.API_KEY] = request.ApiKey
 	header[constant.CONTENT_TYPE] = constant.JSON_TYPE
@@ -49,7 +49,7 @@ func (service *AzureOpenAIEmbeddingProcessService) GenerateRequest(request *bean
 	return request.Endpoint, header, requestBody
 }
 
-func (service *OpenAIEmbeddingProcessService) ConvertEmbeddingResult(responseBody string) (bean.EmbeddingResult, error) {
+func (service *openAIEmbeddingProcessService) ConvertEmbeddingResult(responseBody string) (bean.EmbeddingResult, error) {
 	res := &bean.EmbeddingResult{}
 	err := json.Unmarshal([]byte(responseBody), res)
 	return *res, err

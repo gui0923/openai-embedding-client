@@ -12,22 +12,22 @@ import (
 	"github.com/pkoukk/tiktoken-go"
 )
 
-type EmbeddingClient struct {
+type embeddingClient struct {
 	maxTokens     int
 	maxInputNum   int
 	tiktoken      tiktoken.Tiktoken
-	openaiService OpenAIEmbeddingProcessService
-	azureService  AzureOpenAIEmbeddingProcessService
+	openaiService openAIEmbeddingProcessService
+	azureService  azureOpenAIEmbeddingProcessService
 }
 
-func NewEmbeddingClient(maxTokens int, maxInputNum int) *EmbeddingClient {
-	openaiService := &OpenAIEmbeddingProcessService{}
-	azureService := &AzureOpenAIEmbeddingProcessService{}
+func NewEmbeddingClient(maxTokens int, maxInputNum int) *embeddingClient {
+	openaiService := &openAIEmbeddingProcessService{}
+	azureService := &azureOpenAIEmbeddingProcessService{}
 	t, err := tiktoken.GetEncoding("cl100k_base")
 	if err != nil {
 		panic(err)
 	}
-	return &EmbeddingClient{
+	return &embeddingClient{
 		maxTokens:     maxTokens,
 		maxInputNum:   maxInputNum,
 		tiktoken:      *t,
@@ -36,7 +36,7 @@ func NewEmbeddingClient(maxTokens int, maxInputNum int) *EmbeddingClient {
 	}
 }
 
-func (client *EmbeddingClient) EmbeddingRequest(request *bean.EmbeddingRequest) (bean.EmbeddingResult, error) {
+func (client *embeddingClient) EmbeddingRequest(request *bean.EmbeddingRequest) (bean.EmbeddingResult, error) {
 	inputs := request.Input
 	inputMap := make(map[string]interface{}, 0)
 	for _, v := range inputs {
