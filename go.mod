@@ -6,4 +6,5 @@ require (
 	github.com/dlclark/regexp2 v1.10.0 // indirect
 	github.com/google/uuid v1.4.0 // indirect
 	github.com/pkoukk/tiktoken-go v0.1.6 // indirect
+	golang.org/x/time v0.4.0 // indirect
 )
