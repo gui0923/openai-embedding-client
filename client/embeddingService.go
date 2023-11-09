@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 
@@ -42,17 +41,15 @@ func (client *embeddingClient) EmbeddingRequest(request *bean.EmbeddingRequest) 
 	for _, v := range inputs {
 		inputMap[v] = nil
 	}
-	keys := make([]string, 0, len(inputMap))
+	request.Input = make([]string, 0, len(inputMap))
 	for k := range inputMap {
-		keys = append(keys, k)
+		request.Input = append(request.Input, k)
 	}
-	request.Input = keys
-	fmt.Printf("keys: %v\n", keys)
-	if len(keys) > client.maxInputNum {
+	if len(request.Input) > client.maxInputNum {
 		return bean.EmbeddingResult{}, errors.New("exceeded maximum input size limit.")
 	}
 	var inputTotalTokens = 0
-	for _, v := range keys {
+	for _, v := range request.Input {
 		inputTotalTokens += len(client.tiktoken.Encode(v, nil, nil))
 	}
 	if inputTotalTokens >= client.maxTokens {
@@ -94,13 +91,13 @@ func (client *embeddingClient) EmbeddingRequest(request *bean.EmbeddingRequest) 
 	if request.Type == 0 {
 		res, err := client.openaiService.ConvertEmbeddingResult(string(body))
 		if err == nil {
-			res.Input = keys
+			res.Input = request.Input
 		}
 		return res, err
 	} else {
 		res, err := client.azureService.ConvertEmbeddingResult(string(body))
 		if err == nil {
-			res.Input = keys
+			res.Input = request.Input
 		}
 		return res, err
 	}
