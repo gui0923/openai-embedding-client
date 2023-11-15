@@ -14,7 +14,7 @@ import (
 	"golang.org/x/time/rate"
 )
 
-type embeddingClient struct {
+type EmbeddingClient struct {
 	maxTokensPer   int
 	maxInputNumPer int
 	numberLimiter  rate.Limiter
@@ -24,18 +24,18 @@ type embeddingClient struct {
 	azureService   azureOpenAIEmbeddingProcessService
 }
 
-func NewEmbeddingClient(maxTokens int, maxInputNum int) *embeddingClient {
+func NewEmbeddingClient(maxTokens int, maxInputNum int) *EmbeddingClient {
 	return NewLimterEmbeddingClient(maxInputNum, maxInputNum, math.MaxInt32, math.MaxInt32)
 }
 
-func NewLimterEmbeddingClient(maxTokens int, maxInputNum int, requestNumberPerMinute int, requestTokensPerMinute int) *embeddingClient {
+func NewLimterEmbeddingClient(maxTokens int, maxInputNum int, requestNumberPerMinute int, requestTokensPerMinute int) *EmbeddingClient {
 	openaiService := &openAIEmbeddingProcessService{}
 	azureService := &azureOpenAIEmbeddingProcessService{}
 	t, err := tiktoken.GetEncoding("cl100k_base")
 	if err != nil {
 		panic(err)
 	}
-	c := &embeddingClient{
+	c := &EmbeddingClient{
 		maxTokensPer:   maxTokens,
 		maxInputNumPer: maxInputNum,
 		tiktoken:       *t,
@@ -47,7 +47,7 @@ func NewLimterEmbeddingClient(maxTokens int, maxInputNum int, requestNumberPerMi
 	return c
 }
 
-func (client *embeddingClient) EmbeddingRequest(request *bean.EmbeddingRequest) (bean.EmbeddingResult, error) {
+func (client *EmbeddingClient) EmbeddingRequest(request *bean.EmbeddingRequest) (bean.EmbeddingResult, error) {
 	inputs := request.Input
 	inputMap := make(map[string]interface{}, 0)
 	for _, v := range inputs {
