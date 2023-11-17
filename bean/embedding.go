@@ -7,17 +7,7 @@ type Embedding struct {
 }
 
 type EmbeddingRequest struct {
-	Model    string      `json:"model"`
-	Input    []string    `json:"input"`
-	Type     int8        `json:"type"`
-	ApiKey   string      `json:"api_key"`
-	Endpoint string      `json:"endpoint"`
-	ProxyCfg ProxyConfig `json:"proxy_config"`
-}
-
-type ProxyConfig struct {
-	NeedProxy bool   `json:"need_proxy"`
-	Address   string `json:"address"`
+	Input []string `json:"input"`
 }
 
 type EmbeddingResult struct {

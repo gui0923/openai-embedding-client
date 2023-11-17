@@ -22,13 +22,27 @@ type EmbeddingClient struct {
 	tiktoken       tiktoken.Tiktoken
 	openaiService  openAIEmbeddingProcessService
 	azureService   azureOpenAIEmbeddingProcessService
+	Config         EmbeddingClientConfig
 }
 
-func NewEmbeddingClient(maxTokens int, maxInputNum int) *EmbeddingClient {
-	return NewLimterEmbeddingClient(maxInputNum, maxInputNum, math.MaxInt32, math.MaxInt32)
+type EmbeddingClientConfig struct {
+	Model    string      `json:"model"`
+	Type     int8        `json:"type"` // 0 means openai.com 1 means azure.com
+	ApiKey   string      `json:"api_key"`
+	Endpoint string      `json:"endpoint"`
+	ProxyCfg ProxyConfig `json:"proxy_config"`
 }
 
-func NewLimterEmbeddingClient(maxTokens int, maxInputNum int, requestNumberPerMinute int, requestTokensPerMinute int) *EmbeddingClient {
+type ProxyConfig struct {
+	NeedProxy bool   `json:"need_proxy"`
+	Address   string `json:"address"`
+}
+
+func NewEmbeddingClient(maxTokens int, maxInputNum int, config *EmbeddingClientConfig) *EmbeddingClient {
+	return NewLimiterEmbeddingClient(maxTokens, maxInputNum, math.MaxInt32, math.MaxInt32, config)
+}
+
+func NewLimiterEmbeddingClient(maxTokens int, maxInputNum int, requestNumberPerMinute int, requestTokensPerMinute int, config *EmbeddingClientConfig) *EmbeddingClient {
 	openaiService := &openAIEmbeddingProcessService{}
 	azureService := &azureOpenAIEmbeddingProcessService{}
 	t, err := tiktoken.GetEncoding("cl100k_base")
@@ -41,6 +55,7 @@ func NewLimterEmbeddingClient(maxTokens int, maxInputNum int, requestNumberPerMi
 		tiktoken:       *t,
 		openaiService:  *openaiService,
 		azureService:   *azureService,
+		Config:         *config,
 	}
 	c.tokensLimiter = *rate.NewLimiter(rate.Limit(requestTokensPerMinute/60.0), requestTokensPerMinute)
 	c.numberLimiter = *rate.NewLimiter(rate.Limit(requestNumberPerMinute/60.0), requestNumberPerMinute)
@@ -49,7 +64,7 @@ func NewLimterEmbeddingClient(maxTokens int, maxInputNum int, requestNumberPerMi
 
 func (client *EmbeddingClient) EmbeddingRequest(request *bean.EmbeddingRequest) (bean.EmbeddingResult, error) {
 	inputs := request.Input
-	inputMap := make(map[string]interface{}, 0)
+	inputMap := make(map[string]interface{})
 	for _, v := range inputs {
 		inputMap[v] = nil
 	}
@@ -78,13 +93,13 @@ func (client *EmbeddingClient) EmbeddingRequest(request *bean.EmbeddingRequest) 
 	var url string
 	var header map[string]string
 	var content map[string]interface{}
-	if request.Type == 0 {
-		a, b, d := client.openaiService.GenerateRequest(request)
+	if client.Config.Type == 0 {
+		a, b, d := client.openaiService.GenerateRequest(request, &client.Config)
 		url = a
 		header = b
 		content = d
 	} else {
-		a, b, d := client.azureService.GenerateRequest(request)
+		a, b, d := client.azureService.GenerateRequest(request, &client.Config)
 		url = a
 		header = b
 		content = d
@@ -106,9 +121,11 @@ func (client *EmbeddingClient) EmbeddingRequest(request *bean.EmbeddingRequest) 
 	if err != nil {
 		return bean.EmbeddingResult{}, err
 	}
-	defer response.Body.Close()
+	defer func(Body io.ReadCloser) {
+		_ = Body.Close()
+	}(response.Body)
 	body, _ := io.ReadAll(response.Body)
-	if request.Type == 0 {
+	if client.Config.Type == 0 {
 		res, err := client.openaiService.ConvertEmbeddingResult(string(body))
 		if err == nil {
 			res.Input = request.Input

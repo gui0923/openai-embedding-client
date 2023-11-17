@@ -20,24 +20,24 @@ type azureOpenAIEmbeddingProcessService struct {
 	openAIEmbeddingProcessService
 }
 
-func (service *openAIEmbeddingProcessService) GenerateRequest(request *bean.EmbeddingRequest) (string, map[string]string, map[string]interface{}) {
+func (service *openAIEmbeddingProcessService) GenerateRequest(request *bean.EmbeddingRequest, config *EmbeddingClientConfig) (string, map[string]string, map[string]interface{}) {
 	header := make(map[string]string, 0)
-	header[constant.AUTHORIZATION_KEY] = constant.BEARER_PREFIX + request.ApiKey
+	header[constant.AUTHORIZATION_KEY] = constant.BEARER_PREFIX + config.ApiKey
 	header[constant.CONTENT_TYPE] = constant.JSON_TYPE
 
-	requestBody := make(map[string]interface{}, 0)
-	requestBody[constant.MODEL_KEY] = request.Model
+	requestBody := make(map[string]interface{})
+	requestBody[constant.MODEL_KEY] = config.Model
 	if len(request.Input) == 1 {
 		requestBody[constant.INPUT_KEY] = request.Input[0]
 	} else {
 		requestBody[constant.INPUT_KEY] = request.Input
 	}
-	return request.Endpoint, header, requestBody
+	return config.Endpoint, header, requestBody
 }
 
-func (service *azureOpenAIEmbeddingProcessService) GenerateRequest(request *bean.EmbeddingRequest) (string, map[string]string, map[string]interface{}) {
-	header := make(map[string]string, 0)
-	header[constant.API_KEY] = request.ApiKey
+func (service *azureOpenAIEmbeddingProcessService) GenerateRequest(request *bean.EmbeddingRequest, config *EmbeddingClientConfig) (string, map[string]string, map[string]interface{}) {
+	header := make(map[string]string)
+	header[constant.API_KEY] = config.ApiKey
 	header[constant.CONTENT_TYPE] = constant.JSON_TYPE
 
 	requestBody := make(map[string]interface{}, 0)
@@ -46,7 +46,7 @@ func (service *azureOpenAIEmbeddingProcessService) GenerateRequest(request *bean
 	} else {
 		requestBody[constant.INPUT_KEY] = request.Input
 	}
-	return request.Endpoint, header, requestBody
+	return config.Endpoint, header, requestBody
 }
 
 func (service *openAIEmbeddingProcessService) ConvertEmbeddingResult(responseBody string) (bean.EmbeddingResult, error) {
