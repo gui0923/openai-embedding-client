@@ -57,8 +57,8 @@ func NewLimiterEmbeddingClient(maxTokens int, maxInputNum int, requestNumberPerM
 		azureService:   *azureService,
 		Config:         *config,
 	}
-	c.tokensLimiter = *rate.NewLimiter(rate.Limit(requestTokensPerMinute/60.0), requestTokensPerMinute)
-	c.numberLimiter = *rate.NewLimiter(rate.Limit(requestNumberPerMinute/60.0), requestNumberPerMinute)
+	c.tokensLimiter = *rate.NewLimiter(rate.Limit(float64(requestTokensPerMinute)*1.0/60.0), requestTokensPerMinute)
+	c.numberLimiter = *rate.NewLimiter(rate.Limit(float64(requestNumberPerMinute)*1.0/60.0), requestNumberPerMinute)
 	return c
 }
 
