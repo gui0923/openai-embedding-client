@@ -68,9 +68,8 @@ func (client *EmbeddingClient) EmbeddingRequest(request *bean.EmbeddingRequest) 
 	for _, v := range inputs {
 		inputMap[v] = nil
 	}
-	request.Input = make([]string, 0, len(inputMap))
-	for k := range inputMap {
-		request.Input = append(request.Input, k)
+	if len(inputMap) != len(inputs) {
+		return bean.EmbeddingResult{}, errors.New("input texts exists same value")
 	}
 	if len(request.Input) > client.maxInputNumPer {
 		return bean.EmbeddingResult{}, errors.New("exceeded maximum input size limit")
